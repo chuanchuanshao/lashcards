@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英语拼读 & 高频词闪卡</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #ef4444; --purple: #a855f7; --green: #22c55e;
+    --blue: #3b82f6; --orange: #f97316; --yellow: #eab308;
+    --indigo: #6366f1; --indigo-light: #e0e7ff; --indigo-dark: #4338ca;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-400: #9ca3af;
+    --gray-500: #6b7280; --gray-600: #4b5563; --gray-800: #1f2937;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--gray-50);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px;
+  }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 32px; }
+  .header h1 { font-family: 'Fredoka One', cursive; font-size: 2.2rem; color: var(--gray-800); margin-bottom: 8px; }
+  .header p { color: var(--gray-500); font-size: 0.9rem; }
+
+  /* Category Nav */
+  .nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 32px; max-width: 700px; }
+  .nav-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 18px; border-radius: 999px; border: none; cursor: pointer;
+    font-family: 'Nunito', sans-serif; font-size: 0.85rem; font-weight: 700;
+    background: white; color: var(--gray-600);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    transition: all 0.2s;
+  }
+  .nav-btn:hover { background: var(--gray-100); }
+  .nav-btn.active { color: white; }
+  .nav-btn[data-cat="alphabet"].active { background: var(--red); box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--red); }
+  .nav-btn[data-cat="combinations"].active { background: var(--purple); box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--purple); }
+  .nav-btn[data-cat="blends"].active { background: var(--green); box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--green); }
+  .nav-btn[data-cat="short"].active { background: var(--blue); box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--blue); }
+  .nav-btn[data-cat="long"].active { background: var(--orange); box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--orange); }
+  .nav-btn[data-cat="sight"].active { background: var(--yellow); box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--yellow); }
+
+  /* Card Area */
+  .card-area { width: 100%; max-width: 440px; }
+  .progress { text-align: center; margin-bottom: 12px; font-size: 0.8rem; font-weight: 700; color: var(--gray-400); }
+
+  /* 3D Card */
+  .scene { width: 100%; height: 340px; perspective: 1000px; cursor: pointer; }
+  .card {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .card-face {
+    position: absolute; width: 100%; height: 100%;
+    border-radius: 24px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 32px;
+    overflow: hidden;
+  }
+  .card-front {
+    background: white;
+    border: 4px solid #eff6ff;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  }
+  .card-back {
+    background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+    border: 4px solid #e0e7ff;
+    box-shadow: 0 8px 30px rgba(99,102,241,0.15);
+    transform: rotateY(180deg);
+  }
+
+  .sound-btn {
+    position: absolute; top: 20px; right: 20px;
+    width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; font-size: 1.2rem;
+  }
+  .card-front .sound-btn { background: #eff6ff; color: var(--blue); }
+  .card-front .sound-btn:hover { background: #dbeafe; transform: scale(1.1); }
+  .card-back .sound-btn { background: var(--indigo-light); color: var(--indigo); }
+  .card-back .sound-btn:hover { background: #c7d2fe; transform: scale(1.1); }
+
+  .card-main-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 4.5rem; color: var(--gray-800);
+    text-align: center; line-height: 1.1;
+    word-break: break-all;
+  }
+  .card-flip-hint {
+    position: absolute; bottom: 20px;
+    display: flex; align-items: center; gap: 6px;
+    color: var(--gray-400); font-size: 0.8rem; font-weight: 700;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .card-back-text {
+    font-size: 1.5rem; font-weight: 800; color: #312e81;
+    text-align: center; line-height: 1.5; word-break: break-word;
+    margin-bottom: 20px;
+  }
+  .card-note {
+    background: rgba(255,255,255,0.6);
+    border-radius: 16px; padding: 14px 18px;
+    width: 100%; text-align: center;
+    font-size: 0.95rem; font-weight: 700; color: var(--indigo-dark);
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .card-back-hint {
+    position: absolute; bottom: 20px;
+    color: #a5b4fc; font-size: 0.8rem; font-weight: 700;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 32px;
+  }
+  .ctrl-btn {
+    width: 54px; height: 54px; border-radius: 50%; border: none; cursor: pointer;
+    background: white; color: var(--gray-600);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-size: 1.4rem; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .ctrl-btn:hover { color: var(--blue); }
+  .ctrl-btn.prev:hover { transform: translateX(-3px); }
+  .ctrl-btn.next:hover { transform: translateX(3px); }
+
+  .flip-btn {
+    padding: 12px 28px; border-radius: 999px; border: none; cursor: pointer;
+    background: var(--indigo); color: white;
+    font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 800;
+    box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+    display: flex; align-items: center; gap: 8px;
+    transition: all 0.2s;
+  }
+  .flip-btn:hover { background: var(--indigo-dark); transform: scale(1.03); }
+  .flip-btn:active { transform: scale(0.97); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎈 英语拼读 &amp; 高频词闪卡</h1>
+  <p>每日翻一翻，轻松记单词！点击卡片即可翻面，点击喇叭听发音。</p>
+</div>
+
+<div class="nav" id="nav"></div>
+
+<div class="card-area">
+  <div class="progress" id="progress"></div>
+  <div class="scene" id="scene" onclick="flipCard()">
+    <div class="card" id="card">
+      <div class="card-face card-front" id="front-face">
+        <button class="sound-btn" id="front-sound" title="播放发音">🔊</button>
+        <div class="card-main-text" id="front-text"></div>
+        <div class="card-flip-hint">↻ 点击翻转</div>
+      </div>
+      <div class="card-face card-back" id="back-face">
+        <button class="sound-btn" id="back-sound" title="播放发音">🔊</button>
+        <div class="card-back-text" id="back-text"></div>
+        <div class="card-note" id="note-text"></div>
+        <div class="card-back-hint">再点一次翻回来</div>
+      </div>
+    </div>
+  </div>
+  <div class="controls">
+    <button class="ctrl-btn prev" onclick="prevCard()">‹</button>
+    <button class="flip-btn" onclick="flipCard()">↻ 翻转卡片</button>
+    <button class="ctrl-btn next" onclick="nextCard()">›</button>
+  </div>
+</div>
+
+<script>
+const ALPHABET = [
+  { front:"Aa", back:"apple, ant, alligator", note:"🍎 A 是咬了一口的苹果" },
+  { front:"Bb", back:"bear, bird, bed, banana", note:"🐻 B 是胖胖的小熊" },
+  { front:"Cc", back:"cat, cup, car, computer", note:"🐱 C 是一弯新月" },
+  { front:"Dd", back:"dog, desk, doll, duck", note:"🐶 D 是大肚子小狗" },
+  { front:"Ee", back:"egg, elbow, elephant", note:"🐘 E 是大象的长鼻子" },
+  { front:"Ff", back:"fish, fan, farm, fork", note:"🐟 F 是游动的小鱼" },
+  { front:"Gg", back:"gorilla, goat, gift, girl", note:"🦍 G 是大猩猩的脸" },
+  { front:"Hh", back:"horse, hat, hot dog", note:"🐴 H 是跨栏的栏架" },
+  { front:"Ii", back:"insect, ink, igloo", note:"🐛 I 是笔直的树干" },
+  { front:"Jj", back:"jet, jam, juice, jacket", note:"🛩️ J 是雨伞的弯柄" },
+  { front:"Kk", back:"kangaroo, key, kite, king", note:"🦘 K 是袋鼠在跳跃" },
+  { front:"Ll", back:"lion, lamp, leaf, lemon", note:"🦁 L 是长颈鹿的脖子" },
+  { front:"Mm", back:"monkey, money, mouse", note:"🐒 M 是连绵的两座山" },
+  { front:"Nn", back:"nut, net, nest, nose", note:"🌰 N 是闪电的折线" },
+  { front:"Oo", back:"octopus, ox, ostrich", note:"🐙 O 是圆圆的太阳" },
+  { front:"Pp", back:"peach, pen, pineapple", note:"🍑 P 是迎风的旗帜" },
+  { front:"Qq", back:"queen, quiz, quilt", note:"👑 Q 是气球带着线" },
+  { front:"Rr", back:"rabbit, rice, robot", note:"🐰 R 是小兔竖起耳朵" },
+  { front:"Ss", back:"seal, sun, sock, soap", note:"🐍 S 是一条弯弯曲曲的蛇" },
+  { front:"Tt", back:"turtle, tent, tiger, teacher", note:"🐢 T 是笔直的电线杆" },
+  { front:"Uu", back:"umbrella, uncle, umpire", note:"☂️ U 是一个大大的茶杯" },
+  { front:"Vv", back:"van, vet, vest, violin", note:"🚐 V 是胜利的手势" },
+  { front:"Ww", back:"wolf, web, water, watch", note:"🐺 W 是水面的波纹" },
+  { front:"Xx", back:"fox, box, wax", note:"🦊 X 是交叉的剪刀" },
+  { front:"Yy", back:"yo-yo, yak, yogurt, yacht", note:"🪀 Y 是树木的枝桠" },
+  { front:"Zz", back:"zipper, zero, zoo, zebra", note:"🦓 Z 是曲折的小路" },
+];
+const COMBINATIONS = [
+  { front:"ar", back:"car, farm, park, star", note:"🏴‍☠️ 海盗来了大喊 'Aaargh!'" },
+  { front:"ir / ur", back:"bird, girl, nurse, purple", note:"🐦 小鸟护士爱紫色" },
+  { front:"er / or", back:"teacher, sister, doctor, tractor", note:"👩‍🏫 老师和医生" },
+  { front:"ou / ow", back:"mouse, house, cow, brown", note:"🤕 踩到脚痛得大叫 '嗷!'" },
+  { front:"oi / oy", back:"coin, soil, toy, boy", note:"👦 男孩在玩硬币玩具" },
+  { front:"oo / u", back:"book, foot, bush, pull", note:"📖 睁大眼睛看书 '喔！'" },
+  { front:"au / aw", back:"sauce, August, prawn, draw", note:"🦐 画一只大虾" },
+  { front:"al / wa", back:"ball, tall, water, walk", note:"🚶‍♂️ 边走边喝水" },
+  { front:"or / oar", back:"horse, fork, roar, board", note:"🐴 马儿在咆哮" },
+  { front:"are / air", back:"square, share, chair, hair", note:"🪑 坐在椅子上分享" },
+  { front:"ea / ear", back:"bread, head, bear, pear", note:"🐻 熊的头和面包" },
+  { front:"ear / eer", back:"ear, clear, deer, cheer", note:"🦌 小鹿在欢呼" },
+  { front:"kn / wr", back:"knife, knee, write, wrong", note:"🥷 k和w在玩隐身术，不发音！" },
+  { front:"mb / e", back:"lamb, comb, glove, live", note:"🐑 小羊在梳毛" },
+  { front:"tion / sion", back:"station, competition, television", note:"📺 电视里的比赛" },
+];
+const BLENDS = [
+  { front:"bl / cl", back:"black, blanket, clock, club", note:"🕰️ 两人三足，紧贴滑过" },
+  { front:"br / cr", back:"broom, bride, crab, crocodile", note:"🐊 螃蟹和鳄鱼" },
+  { front:"fl / gl", back:"fly, flag, globe, glass", note:"🚩 飞扬的旗帜" },
+  { front:"fr / gr", back:"frog, Friday, green, grass", note:"🐸 绿草地上的青蛙" },
+  { front:"pl / sl", back:"plate, play, slide, sleep", note:"🛝 坐滑梯 '哧溜' 滑下去" },
+  { front:"dr / tr", back:"drum, dress, truck, tree", note:"🥁 树下的大卡车" },
+  { front:"sm / sn", back:"smile, smoke, snake, snow", note:"🐍 雪地里微笑的蛇" },
+  { front:"sp / sw", back:"spoon, spot, swing, swim", note:"🏊‍♂️ 游泳和荡秋千" },
+  { front:"ch / tch", back:"chick, lunch, watch, catch", note:"🚂 小火车开动 '哧-哧-哧'" },
+  { front:"sh / th", back:"shell, ship, this, three, teeth", note:"🤫 妈妈让你安静 '嘘——'" },
+  { front:"ck / qu", back:"duck, rocket, queen, quilt", note:"🦆 鸭子和火箭" },
+  { front:"sk / sc", back:"skunk, desk, scale, school", note:"🏫 学校里的书桌" },
+];
+const SHORT_VOWELS = [
+  { front:"Short a", back:"cat, ant, yak, jam, map, bat", note:"🥁 像小鼓一样干脆：/æ/" },
+  { front:"Short e", back:"web, egg, vet, jet, hen, bed", note:"🥁 嘴角微咧：/e/" },
+  { front:"Short i", back:"hip, ink, zip, lip, pig, hit", note:"🥁 短促有力：/ɪ/" },
+  { front:"Short o", back:"fox, log, ox, pot, hot, top", note:"🥁 嘴巴圆圆：/ɒ/" },
+  { front:"Short u", back:"sun, up, jug, bug, nut, run", note:"🥁 肚子饿了：/ʌ/" },
+];
+const LONG_VOWELS = [
+  { front:"Long a", back:"tape, cake, gate, rain, day, play", note:"👑 骄傲地大喊自己的名字：A! (魔法E让前面元音变长)" },
+  { front:"Long i", back:"kite, time, bike, light, pie, sky", note:"👑 骄傲地大喊自己的名字：I!" },
+  { front:"Long o", back:"home, bone, boat, soap, yellow", note:"👑 骄傲地大喊自己的名字：O!" },
+  { front:"Long u", back:"cube, cute, tube, blue, moon", note:"👑 骄傲地大喊自己的名字：U!" },
+  { front:"Long e", back:"bee, feet, leaf, eat, candy", note:"👑 骄傲地大喊自己的名字：E!" },
+];
+const SIGHT_WORDS = [
+  { front:"a", back:"一", note:"Pre-primer" }, { front:"and", back:"和", note:"Pre-primer" },
+  { front:"away", back:"离开", note:"Pre-primer" }, { front:"big", back:"大的", note:"Pre-primer" },
+  { front:"blue", back:"蓝色", note:"Pre-primer" }, { front:"can", back:"可以", note:"Pre-primer" },
+  { front:"come", back:"来", note:"Pre-primer" }, { front:"down", back:"下来", note:"Pre-primer" },
+  { front:"find", back:"找到", note:"Pre-primer" }, { front:"for", back:"为了", note:"Pre-primer" },
+  { front:"all", back:"全部", note:"Primer" }, { front:"am", back:"是", note:"Primer" },
+  { front:"are", back:"是", note:"Primer" }, { front:"at", back:"在", note:"Primer" },
+  { front:"be", back:"是", note:"Primer" }, { front:"black", back:"黑色", note:"Primer" },
+  { front:"brown", back:"棕色", note:"Primer" }, { front:"but", back:"但是", note:"Primer" },
+  { front:"after", back:"在…后面", note:"Grade 1" }, { front:"again", back:"再一次", note:"Grade 1" },
+  { front:"an", back:"一", note:"Grade 1" }, { front:"any", back:"任何", note:"Grade 1" },
+  { front:"ask", back:"问", note:"Grade 1" }, { front:"by", back:"被", note:"Grade 1" },
+  { front:"always", back:"总是", note:"Grade 2" }, { front:"around", back:"周围", note:"Grade 2" },
+  { front:"because", back:"因为", note:"Grade 2" }, { front:"been", back:"是(are的过去分词)", note:"Grade 2" },
+  { front:"before", back:"在…之前", note:"Grade 2" }, { front:"best", back:"最好的", note:"Grade 2" },
+  { front:"about", back:"关于", note:"Grade 3" }, { front:"better", back:"更好", note:"Grade 3" },
+  { front:"bring", back:"带来", note:"Grade 3" }, { front:"carry", back:"搬运", note:"Grade 3" },
+  { front:"clean", back:"干净的", note:"Grade 3" }, { front:"cut", back:"切", note:"Grade 3" },
+];
+
+const CATEGORIES = [
+  { id:"alphabet",     name:"字母表",        icon:"#",  data:ALPHABET },
+  { id:"combinations", name:"字母组合",       icon:"✦",  data:COMBINATIONS },
+  { id:"blends",       name:"辅音连缀",       icon:"↻",  data:BLENDS },
+  { id:"short",        name:"短元音",         icon:"▶",  data:SHORT_VOWELS },
+  { id:"long",         name:"长元音",         icon:"📖", data:LONG_VOWELS },
+  { id:"sight",        name:"高频词 (精选)",  icon:"✦",  data:SIGHT_WORDS },
+];
+
+let activeCategory = 'alphabet';
+let currentIndex = 0;
+let isFlipped = false;
+
+function getCurrentData() {
+  return CATEGORIES.find(c => c.id === activeCategory).data;
+}
+
+function render() {
+  const data = getCurrentData();
+  const card = data[currentIndex];
+  document.getElementById('progress').textContent = `卡片 ${currentIndex + 1} / ${data.length}`;
+  document.getElementById('front-text').textContent = card.front;
+  document.getElementById('back-text').textContent = card.back;
+  document.getElementById('note-text').textContent = card.note || '';
+  document.getElementById('note-text').style.display = card.note ? 'block' : 'none';
+  document.getElementById('card').classList.toggle('flipped', isFlipped);
+}
+
+function buildNav() {
+  const nav = document.getElementById('nav');
+  nav.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'nav-btn' + (cat.id === activeCategory ? ' active' : '');
+    btn.dataset.cat = cat.id;
+    btn.innerHTML = `<span>${cat.icon}</span>${cat.name}`;
+    btn.onclick = () => {
+      activeCategory = cat.id;
+      currentIndex = 0;
+      isFlipped = false;
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    };
+    nav.appendChild(btn);
+  });
+}
+
+function flipCard() { isFlipped = !isFlipped; render(); }
+
+function nextCard() {
+  isFlipped = false;
+  render();
+  setTimeout(() => {
+    currentIndex = (currentIndex + 1) % getCurrentData().length;
+    render();
+  }, 150);
+}
+
+function prevCard() {
+  isFlipped = false;
+  render();
+  setTimeout(() => {
+    const data = getCurrentData();
+    currentIndex = (currentIndex - 1 + data.length) % data.length;
+    render();
+  }, 150);
+}
+
+async function playSound(text, e) {
+  e.stopPropagation();
+  let t = text;
+  if (t.includes(',')) t = t.split(',')[0].trim();
+  else if (t.includes('/')) t = t.split('/')[0].trim();
+  else if (/^[A-Z][a-z]$/.test(t)) t = t.charAt(0);
+
+  // 规范化为本地文件名（例如: "apple" -> 音频/apple.mp3）
+  const normalized = t.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  const audioPath = `音频/${normalized}.mp3`;
+
+  // 尝试加载本地音频（HEAD 请求检测文件是否存在），不存在时回退到 speechSynthesis
+  try {
+    const resp = await fetch(audioPath, { method: 'HEAD' });
+    if (resp.ok) {
+      const a = new Audio(audioPath);
+      a.play();
+      return;
+    }
+  } catch (err) {
+    // ignore fetch errors and fallback to TTS
+  }
+
+  if (!('speechSynthesis' in window)) { alert('抱歉，您的浏览器不支持语音朗读。'); return; }
+  const u = new SpeechSynthesisUtterance(t);
+  u.lang = 'en-US'; u.rate = 0.85;
+  window.speechSynthesis.speak(u);
+}
+
+document.getElementById('front-sound').onclick = (e) => {
+  playSound(document.getElementById('front-text').textContent, e);
+};
+document.getElementById('back-sound').onclick = (e) => {
+  playSound(document.getElementById('back-text').textContent, e);
+};
+
+buildNav();
+render();
+</script>
+</body>
+</html>
